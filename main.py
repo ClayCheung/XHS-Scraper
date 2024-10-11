@@ -78,11 +78,15 @@ try:
         wait.until(lambda driver: note.find_element(By.XPATH, '//div[@class="note-content"]//div[@class="desc"]').text[:10] != last_title)
         
         # 获取笔记详情
-        title = note.find_element(By.XPATH, '//div[@class="note-content"]//div[@class="title"]').text
-        author = note.find_element(By.XPATH, '//div[@class="author-container"]//span[@class="username"]').text
-        content = note.find_element(By.XPATH, '//div[@class="note-content"]//div[@class="desc"]').text
-        like_count = driver.find_element(By.CSS_SELECTOR, '#noteContainer > div.interaction-container > div.interactions.engage-bar > div > div > div.input-box > div.interact-container > div > div.left > span.like-wrapper.like-active > span.count').text
-        
+        try:
+            title = note.find_element(By.XPATH, '//div[@class="note-content"]//div[@class="title"]').text
+            author = note.find_element(By.XPATH, '//div[@class="author-container"]//span[@class="username"]').text
+            content = note.find_element(By.XPATH, '//div[@class="note-content"]//div[@class="desc"]').text
+            like_count = driver.find_element(By.CSS_SELECTOR, '#noteContainer > div.interaction-container > div.interactions.engage-bar > div > div > div.input-box > div.interact-container > div > div.left > span.like-wrapper.like-active > span.count').text
+        except NoSuchElementException:
+            # 如果出现异常，退出当前循环
+            continue
+
         # 实时打印笔记信息
         if not args.json:
             print("标题:", title)
