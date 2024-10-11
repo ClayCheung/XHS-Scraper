@@ -12,8 +12,8 @@ from selenium.webdriver.support import expected_conditions as EC
 parser = argparse.ArgumentParser(description='小红书搜索脚本')
 parser.add_argument('-q', '--query', type=str, help='搜索内容', required=True)
 parser.add_argument('-n', '--number', type=int, help='获取笔记的数量', default=3)
-parser.add_argument('-c', '--comments', type=int, help='查看的评论数量', default=5)
-parser.add_argument('-r', '--replies', type=int, help='查看的回复数量', default=5)
+parser.add_argument('-c', '--comments', type=int, help='查看的评论数量', default=20)
+parser.add_argument('-r', '--replies', type=int, help='查看的回复数量', default=50)
 parser.add_argument('--json', action='store_true', help='输出JSON格式')
 args = parser.parse_args()
 
@@ -63,12 +63,20 @@ try:
     if not args.json:
         print(f"找到 {len(notes)} 条笔记")
         print("-" * 20)
+    
     for note in notes:
+        from selenium.common.exceptions import NoSuchElementException
+        # 获取前一条笔记的唯一标识符（内容的前10个字）
+        try:
+            last_title = note.find_element(By.XPATH, '//div[@class="note-content"]//div[@class="desc"]').text[:10]
+        except NoSuchElementException:
+            last_title = ""
+
         # 点击打开笔记详情
         note.click()
-        time.sleep(2)
-        wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="note-content"]//div[@class="title"]')))
-
+        # 等待新的笔记加载完成，通过等待标题的变化
+        wait.until(lambda driver: note.find_element(By.XPATH, '//div[@class="note-content"]//div[@class="desc"]').text[:10] != last_title)
+        
         # 获取笔记详情
         title = note.find_element(By.XPATH, '//div[@class="note-content"]//div[@class="title"]').text
         author = note.find_element(By.XPATH, '//div[@class="author-container"]//span[@class="username"]').text
